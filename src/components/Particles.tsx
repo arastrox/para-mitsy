@@ -2,14 +2,16 @@
 
 import { useEffect, useRef } from 'react';
 
-// Capa de pétalos en canvas. Al florecer (`active` pasa a true) lanza un
-// estallido radial de pétalos en todas direcciones con distintos tonos y, a
-// continuación, un chubasco de pétalos cayendo desde el cielo que decae poco a
-// poco (no es infinito: deja leer la frase y permite que el bucle descanse).
+// Partículas en canvas reutilizables por todos los temas. Al activarse lanza un
+// estallido radial amplio desde el centro y, a continuación, una lluvia perpetua
+// que cae desde el cielo. La forma (pétalo, hoja, estrella, corazón) y los
+// colores los define cada tema. El bucle descansa cuando está inactivo y vacío.
 
-type Props = { active: boolean; colors: string[] };
+export type ParticleShape = 'petal' | 'leaf' | 'star' | 'heart';
 
-type Petal = {
+type Props = { active: boolean; colors: string[]; shape?: ParticleShape };
+
+type P = {
   x: number;
   y: number;
   vx: number;
@@ -25,11 +27,44 @@ type Petal = {
   kind: 'fall' | 'burst';
 };
 
-export default function PetalField({ active, colors }: Props) {
+function path(ctx: CanvasRenderingContext2D, shape: ParticleShape, s: number) {
+  ctx.beginPath();
+  if (shape === 'petal') {
+    ctx.moveTo(0, 0);
+    ctx.bezierCurveTo(-s, -s * 0.5, -s * 1.2, s * 0.5, 0, s);
+    ctx.bezierCurveTo(s * 1.2, s * 0.5, s, -s * 0.5, 0, 0);
+  } else if (shape === 'leaf') {
+    ctx.moveTo(0, -s * 1.2);
+    ctx.quadraticCurveTo(s * 0.75, 0, 0, s * 1.2);
+    ctx.quadraticCurveTo(-s * 0.75, 0, 0, -s * 1.2);
+  } else if (shape === 'star') {
+    for (let i = 0; i < 10; i++) {
+      const ang = -Math.PI / 2 + (i * Math.PI) / 5;
+      const rad = i % 2 === 0 ? s : s * 0.45;
+      const x = Math.cos(ang) * rad;
+      const y = Math.sin(ang) * rad;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+  } else {
+    // heart
+    const w = s * 1.3;
+    const h = s * 1.3;
+    ctx.moveTo(0, h * 0.35);
+    ctx.bezierCurveTo(0, h * 0.05, -w * 0.5, -h * 0.1, -w * 0.5, h * 0.15);
+    ctx.bezierCurveTo(-w * 0.5, h * 0.45, -w * 0.05, h * 0.6, 0, h * 0.9);
+    ctx.bezierCurveTo(w * 0.05, h * 0.6, w * 0.5, h * 0.45, w * 0.5, h * 0.15);
+    ctx.bezierCurveTo(w * 0.5, -h * 0.1, 0, h * 0.05, 0, h * 0.35);
+  }
+  ctx.fill();
+}
+
+export default function Particles({ active, colors, shape = 'petal' }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const activeRef = useRef(active);
   const colorsRef = useRef(colors);
-  const petalsRef = useRef<Petal[]>([]);
+  const listRef = useRef<P[]>([]);
   const burstedRef = useRef(false);
   const runningRef = useRef(false);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
@@ -42,7 +77,7 @@ export default function PetalField({ active, colors }: Props) {
 
   function pick() {
     const c = colorsRef.current;
-    return c[(Math.random() * c.length) | 0] || '#ff9ec1';
+    return c[(Math.random() * c.length) | 0] || '#ffffff';
   }
 
   function ensureRunning() {
@@ -57,8 +92,8 @@ export default function PetalField({ active, colors }: Props) {
     const n = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 46;
     for (let i = 0; i < n; i++) {
       const a = (i / n) * Math.PI * 2 + Math.random() * 0.25;
-      const speed = 8 + Math.random() * 14; // estallido más amplio y expansivo
-      petalsRef.current.push({
+      const speed = 8 + Math.random() * 14;
+      listRef.current.push({
         x: cx,
         y: cy,
         vx: Math.cos(a) * speed,
@@ -70,7 +105,7 @@ export default function PetalField({ active, colors }: Props) {
         flipSpeed: 0.05 + Math.random() * 0.05,
         color: pick(),
         alpha: 1,
-        fade: 0.005 + Math.random() * 0.005, // se desvanece lento → llega más lejos
+        fade: 0.005 + Math.random() * 0.005,
         kind: 'burst',
       });
     }
@@ -78,7 +113,7 @@ export default function PetalField({ active, colors }: Props) {
   }
 
   function spawnFalling() {
-    petalsRef.current.push({
+    listRef.current.push({
       x: Math.random() * window.innerWidth,
       y: -20,
       vx: -0.5 + Math.random(),
@@ -97,8 +132,7 @@ export default function PetalField({ active, colors }: Props) {
 
   function loop() {
     const ctx = ctxRef.current;
-    const canvas = canvasRef.current;
-    if (!ctx || !canvas) {
+    if (!ctx) {
       runningRef.current = false;
       return;
     }
@@ -108,10 +142,9 @@ export default function PetalField({ active, colors }: Props) {
     ctx.clearRect(0, 0, W, H);
 
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const list = petalsRef.current;
-    const concurrentFalling = list.reduce((a, p) => a + (p.kind === 'fall' ? 1 : 0), 0);
-    // Lluvia perpetua mientras la flor está abierta.
-    if (activeRef.current && !reduce && concurrentFalling < 28 && frameRef.current % 10 === 0) {
+    const list = listRef.current;
+    const falling = list.reduce((a, p) => a + (p.kind === 'fall' ? 1 : 0), 0);
+    if (activeRef.current && !reduce && falling < 28 && frameRef.current % 10 === 0) {
       spawnFalling();
     }
 
@@ -136,20 +169,12 @@ export default function PetalField({ active, colors }: Props) {
       ctx.scale(1, Math.sin(p.flip));
       ctx.globalAlpha = Math.max(0, p.alpha);
       ctx.fillStyle = p.color;
-      const s = p.size;
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.bezierCurveTo(-s, -s * 0.5, -s * 1.2, s * 0.5, 0, s);
-      ctx.bezierCurveTo(s * 1.2, s * 0.5, s, -s * 0.5, 0, 0);
-      ctx.fill();
+      path(ctx, shape, p.size);
       ctx.restore();
 
-      if (p.alpha <= 0 || p.y > H + 30 || p.x < -40 || p.x > W + 40) {
-        list.splice(i, 1);
-      }
+      if (p.alpha <= 0 || p.y > H + 30 || p.x < -40 || p.x > W + 40) list.splice(i, 1);
     }
 
-    // Descansa solo si la flor está cerrada y no quedan pétalos en pantalla.
     if (list.length === 0 && !activeRef.current) {
       runningRef.current = false;
       return;
@@ -157,7 +182,6 @@ export default function PetalField({ active, colors }: Props) {
     rafRef.current = requestAnimationFrame(loop);
   }
 
-  // Dispara el estallido y el chubasco al florecer.
   useEffect(() => {
     activeRef.current = active;
     if (active && !burstedRef.current) {

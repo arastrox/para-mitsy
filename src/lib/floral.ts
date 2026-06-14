@@ -2,6 +2,7 @@
 // cada día de forma determinista (estable durante todo el día, nueva al
 // siguiente). Pensado para los gustos de Mitsy: flores de pétalos
 // independientes, tonos rosa/rojo/magenta con algo de variedad. Nunca rosas.
+import { dailyRandom } from './seed';
 
 export type FloralPalette = {
   petal: [string, string, string]; // degradado del pétalo (base → punta)
@@ -69,26 +70,6 @@ const PALETTES: FloralPalette[] = [
   },
 ];
 
-function mulberry32(a: number) {
-  return () => {
-    a |= 0;
-    a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-function seedFromDate(d: Date) {
-  const s = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return h >>> 0;
-}
-
 // Puntos de anclaje cerca de bordes/esquinas (viewBox 0..1000) para que las
 // siluetas queden periféricas y no estorben el centro.
 const ANCHORS = [
@@ -120,7 +101,7 @@ function buildBackdrop(r: () => number, palette: FloralPalette): SilhouetteSpec[
 }
 
 export function floralOfTheDay(d = new Date()): FloralVariant {
-  const r = mulberry32(seedFromDate(d));
+  const r = dailyRandom(d, 'floral');
   const form = FORMS[Math.floor(r() * FORMS.length)];
   const palette = PALETTES[Math.floor(r() * PALETTES.length)];
   const backdrop = buildBackdrop(r, palette);
