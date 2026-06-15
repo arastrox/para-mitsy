@@ -122,10 +122,6 @@ export default function CatsScene() {
           style={{ transform: `scale(${catScale})`, transition: 'transform 0.12s linear' }}
         >
           <LottieCat />
-          {/* dije del collar (anticipo) */}
-          <div className="pointer-events-none absolute left-1/2 top-[64%] -translate-x-1/2">
-            <Pendant size={26} glow={0.4 + pet * 0.6} />
-          </div>
         </div>
       </motion.div>
 
@@ -161,29 +157,12 @@ export default function CatsScene() {
             transition={{ duration: 0.6, delay: 0.5 }}
           >
             <motion.div
-              initial={{ scale: 0.2, rotate: -12, opacity: 0 }}
-              animate={{ scale: 1, rotate: 0, opacity: 1 }}
-              transition={{ duration: 0.9, delay: 0.6, ease: [0.34, 1.56, 0.64, 1] }}
-              className="mb-6"
+              initial={{ scale: 0.15, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 1, delay: 0.55, ease: [0.34, 1.4, 0.64, 1] }}
             >
-              <Pendant size={84} glow={1} />
+              <HeartReveal phrase={phrase} />
             </motion.div>
-            <motion.p
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, delay: 1.1 }}
-              className="mx-auto max-w-md font-serif text-2xl leading-relaxed text-white sm:text-3xl"
-            >
-              {phrase}
-            </motion.p>
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 1, delay: 1.5 }}
-              className="mt-4 text-sm tracking-wide text-white/60"
-            >
-              — Pablo
-            </motion.p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -201,28 +180,38 @@ export default function CatsScene() {
   );
 }
 
-function Pendant({ size, glow }: { size: number; glow: number }) {
+// Corazón del collar, ampliado: la frase aparece DENTRO del corazón.
+function HeartReveal({ phrase }: { phrase: string }) {
+  const heart =
+    'M50 86 C 8 56 2 28 22 14 C 37 3 50 15 50 27 C 50 15 63 3 78 14 C 98 28 92 56 50 86 Z';
   return (
-    <svg width={size} height={size} viewBox="-50 -50 100 100" style={{ overflow: 'visible' }}>
-      <defs>
-        <radialGradient id="pendantGlow">
-          <stop offset="0%" stopColor="#ffe9a8" stopOpacity={0.9 * glow} />
-          <stop offset="100%" stopColor="#ffe9a8" stopOpacity="0" />
-        </radialGradient>
-        <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#ffe9a8" />
-          <stop offset="50%" stopColor="#f5c451" />
-          <stop offset="100%" stopColor="#caa12f" />
-        </linearGradient>
-      </defs>
-      <circle cx="0" cy="0" r="48" fill="url(#pendantGlow)" />
-      <path
-        d="M0 30 C 0 14 -26 6 -26 -12 C -26 -28 -8 -30 0 -16 C 8 -30 26 -28 26 -12 C 26 6 0 14 0 30 Z"
-        fill="url(#gold)"
-        stroke="#fff3c8"
-        strokeWidth="1.5"
-      />
-      <path d="M-9 -12 C -9 -18 -2 -19 0 -13 C 2 -19 9 -18 9 -12 C 9 -5 0 0 0 4 C 0 0 -9 -5 -9 -12 Z" fill="#fff6d8" opacity="0.5" />
-    </svg>
+    <div
+      className="relative"
+      style={{ width: 'min(94vw, 460px)', aspectRatio: '100 / 92', filter: 'drop-shadow(0 12px 34px rgba(0,0,0,0.55))' }}
+    >
+      <svg viewBox="0 0 100 92" className="absolute inset-0 h-full w-full">
+        <defs>
+          <linearGradient id="heartFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#c9184a" />
+            <stop offset="100%" stopColor="#7a1030" />
+          </linearGradient>
+          <radialGradient id="heartShine" cx="50%" cy="32%" r="55%">
+            <stop offset="0%" stopColor="#ff9ec1" stopOpacity="0.45" />
+            <stop offset="100%" stopColor="#ff9ec1" stopOpacity="0" />
+          </radialGradient>
+        </defs>
+        <path d={heart} fill="url(#heartFill)" stroke="#f5c451" strokeWidth="1.8" />
+        <path d={heart} fill="url(#heartShine)" />
+      </svg>
+      <div
+        className="absolute inset-0 flex flex-col items-center justify-center text-center"
+        style={{ padding: '22% 19% 25%' }}
+      >
+        <p className="font-serif leading-snug text-white" style={{ fontSize: 'clamp(0.85rem, 3.6vw, 1.2rem)' }}>
+          {phrase}
+        </p>
+        <p className="mt-2 text-xs tracking-wide text-white/70">— Pablo</p>
+      </div>
+    </div>
   );
 }
