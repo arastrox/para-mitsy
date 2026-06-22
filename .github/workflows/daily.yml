@@ -19,11 +19,11 @@ jobs:
   generate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Generar frase del día
         env:
@@ -38,6 +38,6 @@ jobs:
           if git diff --staged --quiet; then
             echo "Sin cambios"
           else
-            git commit -m "Frase del día ($(date -u +%Y-%m-%d))"
+            git commit -m "Frase del día ($(node -p "require('./data/daily.json').date"))"
             git push
           fi
