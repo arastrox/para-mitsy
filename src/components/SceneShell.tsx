@@ -10,7 +10,7 @@ import {
   useReducedMotion,
 } from 'framer-motion';
 import Particles, { type ParticleShape } from './Particles';
-import { phraseOfTheDay } from '@/lib/phrases';
+import { useDailyPhrase } from '@/lib/useDailyPhrase';
 
 // Estructura común a todos los temas: el objeto se abre manteniéndolo presionado
 // y, al completarse, revela la frase del día y suena el lofi del tema. Cada tema
@@ -49,7 +49,7 @@ export default function SceneShell({
   const audioStarted = useRef(false);
   const [muted, setMuted] = useState(false);
 
-  const phrase = phraseOfTheDay();
+  const phrase = useDailyPhrase();
 
   function playAudio() {
     const a = audioRef.current;

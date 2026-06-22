@@ -6,7 +6,7 @@ import CozyBackdrop from './CozyBackdrop';
 import LottieCat from './LottieCat';
 import SparkleCanvas from '../SparkleCanvas';
 import Particles from '../Particles';
-import { phraseOfTheDay } from '@/lib/phrases';
+import { useDailyPhrase } from '@/lib/useDailyPhrase';
 import { clamp } from '@/lib/ease';
 
 // Mundo de los gatitos (mecánica propia): acaricia al gato (arrastra sobre él),
@@ -24,7 +24,7 @@ export default function CatsScene() {
   const audioStarted = useRef(false);
   const [muted, setMuted] = useState(false);
 
-  const phrase = phraseOfTheDay();
+  const phrase = useDailyPhrase();
 
   function startAudio() {
     const a = audioRef.current;
