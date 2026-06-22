@@ -23,3 +23,81 @@ body {
   font-family: var(--font-sans), system-ui, sans-serif;
   overscroll-behavior: none;
 }
+
+/* ==========================================================================
+   ATMÓSFERA COMPARTIDA (niebla, rayos, viñeta, grano) — da "ambiente" a todos
+   ========================================================================== */
+.atmo {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.atmo-fog {
+  position: absolute;
+  inset: -25%;
+  filter: blur(70px);
+  opacity: 0.4;
+  will-change: transform;
+}
+.atmo-fog-a {
+  background: radial-gradient(40% 40% at 32% 30%, var(--atmo-tint, #ffffff) 0%, transparent 60%);
+  animation: fog-a 26s ease-in-out infinite alternate;
+}
+.atmo-fog-b {
+  background: radial-gradient(45% 45% at 70% 72%, var(--atmo-tint2, #ffffff) 0%, transparent 60%);
+  animation: fog-b 34s ease-in-out infinite alternate;
+}
+@keyframes fog-a {
+  from { transform: translate3d(-4%, -2%, 0) scale(1); }
+  to { transform: translate3d(6%, 4%, 0) scale(1.18); }
+}
+@keyframes fog-b {
+  from { transform: translate3d(3%, 2%, 0) scale(1.12); }
+  to { transform: translate3d(-5%, -3%, 0) scale(1); }
+}
+.atmo-rays {
+  position: absolute;
+  inset: -45% -15% auto -15%;
+  height: 135%;
+  background: repeating-linear-gradient(
+    102deg,
+    transparent 0 40px,
+    var(--atmo-ray, rgba(255, 255, 255, 0.05)) 40px 44px
+  );
+  mix-blend-mode: screen;
+  opacity: 0.5;
+  transform-origin: top center;
+  animation: rays 20s ease-in-out infinite alternate;
+}
+@keyframes rays {
+  from { transform: rotate(-5deg) translateY(-2%); }
+  to { transform: rotate(5deg) translateY(2%); }
+}
+.atmo-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 92% at 50% 36%, transparent 50%, rgba(0, 0, 0, 0.55) 100%);
+}
+.atmo-grain {
+  position: absolute;
+  inset: -50%;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain 1s steps(4) infinite;
+  will-change: transform;
+}
+@keyframes grain {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-5%, 4%); }
+  50% { transform: translate(3%, -6%); }
+  75% { transform: translate(-4%, -3%); }
+  100% { transform: translate(5%, 5%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atmo-fog-a, .atmo-fog-b, .atmo-rays, .atmo-grain {
+    animation: none;
+  }
+}

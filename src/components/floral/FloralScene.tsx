@@ -17,6 +17,7 @@ export default function FloralScene() {
       particleShape="petal"
       particleColors={variant.palette.tones}
       burstColor="rgba(255,160,190,0.5)"
+      atmosphere={{ tint: variant.palette.glow, tint2: variant.palette.tones[0], ray: 'rgba(255,215,185,0.06)', rays: true }}
       openerLabel="Mantén presionado para abrir la flor"
       background={
         <>

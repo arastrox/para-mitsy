@@ -14,6 +14,7 @@ export default function StarsScene() {
       particleShape="star"
       particleColors={['#fff6d8', '#ffd86b', '#cfd8ff', '#d6a5ff']}
       burstColor="rgba(207,216,255,0.5)"
+      atmosphere={{ tint: 'rgba(150,130,255,0.45)', tint2: 'rgba(120,150,235,0.4)', rays: false }}
       background={
         <>
           <StarsBackdrop />

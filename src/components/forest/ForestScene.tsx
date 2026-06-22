@@ -14,6 +14,7 @@ export default function ForestScene() {
       particleShape="leaf"
       particleColors={['#3a6652', '#5b8a6a', '#86b08a', '#c79a4a']}
       burstColor="rgba(150,200,160,0.45)"
+      atmosphere={{ tint: 'rgba(120,180,140,0.5)', tint2: 'rgba(80,140,110,0.45)', ray: 'rgba(190,225,175,0.06)', rays: true }}
       background={
         <>
           <ForestBackdrop />

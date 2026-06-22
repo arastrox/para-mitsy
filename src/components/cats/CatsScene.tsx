@@ -6,6 +6,8 @@ import CozyBackdrop from './CozyBackdrop';
 import LottieCat from './LottieCat';
 import SparkleCanvas from '../SparkleCanvas';
 import Particles from '../Particles';
+import Atmosphere from '../Atmosphere';
+import { useParallax, requestGyro } from '@/lib/parallax';
 import { useDailyPhrase } from '@/lib/useDailyPhrase';
 import { clamp } from '@/lib/ease';
 
@@ -25,6 +27,8 @@ export default function CatsScene() {
   const [muted, setMuted] = useState(false);
 
   const phrase = useDailyPhrase();
+  const rootRef = useRef<HTMLDivElement>(null);
+  useParallax(rootRef);
 
   function startAudio() {
     const a = audioRef.current;
@@ -43,6 +47,7 @@ export default function CatsScene() {
 
   function onDown(e: React.PointerEvent) {
     if (revealedRef.current) return;
+    requestGyro();
     startAudio();
     pettingRef.current = true;
     lastPt.current = { x: e.clientX, y: e.clientY };
@@ -83,9 +88,12 @@ export default function CatsScene() {
   const catScale = 1 + pet * 0.16;
 
   return (
-    <div className="relative h-dvh w-full overflow-hidden select-none">
-      <CozyBackdrop />
-      <SparkleCanvas colorA="#ffd0a8" colorB="#ff9ec1" countA={50} countB={22} />
+    <div ref={rootRef} className="relative h-dvh w-full overflow-hidden select-none">
+      <div className="absolute inset-[-8%]" style={{ transform: 'translate3d(calc(var(--mx,0) * 20px), calc(var(--my,0) * 16px), 0)' }}>
+        <CozyBackdrop />
+        <SparkleCanvas colorA="#ffd0a8" colorB="#ff9ec1" countA={50} countB={22} />
+      </div>
+      <Atmosphere tint="rgba(255,160,120,0.45)" tint2="rgba(255,120,160,0.4)" rays={false} />
       <Particles active={revealed} colors={['#ff5c8a', '#ff9ec1', '#ffd0d6', '#ffe6a7']} shape="heart" />
 
       <AnimatePresence>
@@ -174,6 +182,14 @@ export default function CatsScene() {
       >
         {muted ? '🔇' : '🎵'}
       </button>
+
+      {/* intro: fundido desde negro */}
+      <motion.div
+        initial={{ opacity: 1 }}
+        animate={{ opacity: 0 }}
+        transition={{ duration: 1.1, ease: 'easeOut' }}
+        className="pointer-events-none absolute inset-0 z-40 bg-[#08070c]"
+      />
 
       <audio ref={audioRef} src="/audio/lofi-placeholder.mp3" loop preload="auto" />
     </div>
