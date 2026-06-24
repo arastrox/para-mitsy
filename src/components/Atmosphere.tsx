@@ -26,11 +26,14 @@ export default function Atmosphere({
     '--atmo-ray': ray,
   } as CSSProperties;
 
+  // Los "rayos" (rays/ray) quedaron como rayas diagonales feas; se eliminaron.
+  // Se conservan los props para compatibilidad, pero no se renderizan.
+  void rays;
+
   return (
     <div className="atmo" style={vars} aria-hidden>
       <div className="atmo-fog atmo-fog-a" />
       <div className="atmo-fog atmo-fog-b" />
-      {rays && <div className="atmo-rays" />}
       <div className="atmo-vignette" />
       {grain && <div className="atmo-grain" />}
     </div>

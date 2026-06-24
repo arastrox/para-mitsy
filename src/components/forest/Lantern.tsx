@@ -45,10 +45,13 @@ export default function Lantern({ p }: { p: number }) {
       {/* Luz cálida dentro del cristal */}
       <rect x="-32" y="-66" width="64" height="134" rx="10" fill="url(#glassLight)" opacity={lightO} />
 
-      {/* Llama */}
-      <g transform={`translate(0 34) scale(${flame})`} style={{ transformOrigin: 'center bottom' }}>
-        <path d="M0 -36 C 18 -10 14 18 0 26 C -14 18 -18 -10 0 -36 Z" fill="url(#flameGrad)" />
-        <path d="M0 -16 C 8 -4 6 12 0 16 C -6 12 -8 -4 0 -16 Z" fill="#fff3c0" opacity="0.9" />
+      {/* Mecha */}
+      <line x1="0" y1="46" x2="0" y2="60" stroke="#3a2a18" strokeWidth="3" />
+
+      {/* Llama: anclada en la base (0,0 local) → crece hacia arriba desde la mecha */}
+      <g transform={`translate(0 48) scale(${flame})`}>
+        <path d="M0 0 C 16 -14 11 -36 0 -48 C -11 -36 -16 -14 0 0 Z" fill="url(#flameGrad)" />
+        <path d="M0 -6 C 8 -16 5 -30 0 -38 C -5 -30 -8 -16 0 -6 Z" fill="#fff3c0" opacity="0.9" />
       </g>
 
       {/* Barras del cristal */}
