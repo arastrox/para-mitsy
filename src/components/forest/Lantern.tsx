@@ -2,15 +2,16 @@
 
 import { clamp, easeInOutCubic, lerp } from '@/lib/ease';
 
-// Farol que se enciende al mantenerlo presionado: la llama crece y la luz cálida
-// llena el cristal mientras `p` va de 0 a 1.
+// Farol detallado: armazón metálico con sombreado cilíndrico (volumen),
+// cúpula, base, barrotes y cristal con reflejo. La llama nace en la mecha y la
+// luz cálida llena el cristal a medida que `p` va de 0 a 1.
 
 export default function Lantern({ p }: { p: number }) {
   const e = easeInOutCubic(clamp(p));
-  const flame = lerp(0.25, 1, e);
-  const glowR = lerp(28, 150, e);
-  const glowO = lerp(0.08, 0.7, e);
-  const lightO = lerp(0, 0.85, e);
+  const flame = lerp(0.2, 1, e);
+  const glowR = lerp(24, 155, e);
+  const glowO = lerp(0.06, 0.75, e);
+  const litO = e;
 
   return (
     <svg viewBox="-150 -150 300 300" width="100%" height="100%" style={{ overflow: 'visible' }}>
@@ -19,46 +20,74 @@ export default function Lantern({ p }: { p: number }) {
           <stop offset="0%" stopColor="#ffcf6e" stopOpacity="0.95" />
           <stop offset="100%" stopColor="#ffcf6e" stopOpacity="0" />
         </radialGradient>
-        <linearGradient id="glassLight" x1="0" y1="1" x2="0" y2="0">
-          <stop offset="0%" stopColor="#ff9a2e" />
-          <stop offset="100%" stopColor="#ffe9a8" />
+        {/* metal con brillo cilíndrico (horizontal) → da volumen */}
+        <linearGradient id="metalH" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="#191309" />
+          <stop offset="20%" stopColor="#6b563a" />
+          <stop offset="44%" stopColor="#c5a572" />
+          <stop offset="56%" stopColor="#c5a572" />
+          <stop offset="80%" stopColor="#6b563a" />
+          <stop offset="100%" stopColor="#191309" />
         </linearGradient>
+        <linearGradient id="metalV" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#d4b27e" />
+          <stop offset="100%" stopColor="#4e3f2a" />
+        </linearGradient>
+        <linearGradient id="glassDark" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#15110b" />
+          <stop offset="100%" stopColor="#241a10" />
+        </linearGradient>
+        <radialGradient id="glassLit" cx="50%" cy="64%" r="62%">
+          <stop offset="0%" stopColor="#fff1c4" />
+          <stop offset="50%" stopColor="#ffb454" />
+          <stop offset="100%" stopColor="#d9791e" />
+        </radialGradient>
         <radialGradient id="flameGrad">
           <stop offset="0%" stopColor="#fff6c8" />
           <stop offset="55%" stopColor="#ffae33" />
           <stop offset="100%" stopColor="#ff6a00" />
         </radialGradient>
+        <filter id="lanternShadow" x="-60%" y="-60%" width="220%" height="220%">
+          <feDropShadow dx="0" dy="10" stdDeviation="9" floodColor="#000000" floodOpacity="0.5" />
+        </filter>
       </defs>
 
-      <circle cx="0" cy="6" r={glowR} fill="url(#lanternGlow)" opacity={glowO} />
+      <circle cx="0" cy="8" r={glowR} fill="url(#lanternGlow)" opacity={glowO} />
 
-      {/* Colgante */}
-      <circle cx="0" cy="-118" r="10" fill="none" stroke="#6b5640" strokeWidth="5" />
-      <line x1="0" y1="-108" x2="0" y2="-96" stroke="#6b5640" strokeWidth="4" />
+      <g filter="url(#lanternShadow)">
+        {/* colgante */}
+        <circle cx="0" cy="-126" r="10" fill="none" stroke="url(#metalV)" strokeWidth="5" />
+        <line x1="0" y1="-116" x2="0" y2="-100" stroke="#5b4a36" strokeWidth="5" />
 
-      {/* Tapa */}
-      <path d="M-44 -96 L44 -96 L30 -74 L-30 -74 Z" fill="#5b4a36" />
+        {/* cúpula */}
+        <path d="M-48 -98 Q 0 -120 48 -98 L 33 -80 L -33 -80 Z" fill="url(#metalV)" />
+        <ellipse cx="0" cy="-99" rx="48" ry="7" fill="#3a2f22" />
 
-      {/* Cuerpo */}
-      <rect x="-40" y="-74" width="80" height="150" rx="14" fill="#241d15" stroke="#6b5640" strokeWidth="4" />
+        {/* cristal de fondo + luz cálida */}
+        <rect x="-37" y="-80" width="74" height="150" rx="9" fill="url(#glassDark)" />
+        <rect x="-37" y="-80" width="74" height="150" rx="9" fill="url(#glassLit)" opacity={litO} />
 
-      {/* Luz cálida dentro del cristal */}
-      <rect x="-32" y="-66" width="64" height="134" rx="10" fill="url(#glassLight)" opacity={lightO} />
+        {/* mecha + llama (crece hacia arriba desde la base) */}
+        <line x1="0" y1="44" x2="0" y2="58" stroke="#3a2a18" strokeWidth="3" />
+        <g transform={`translate(0 46) scale(${flame})`}>
+          <path d="M0 0 C 16 -14 11 -36 0 -48 C -11 -36 -16 -14 0 0 Z" fill="url(#flameGrad)" />
+          <path d="M0 -6 C 8 -16 5 -30 0 -38 C -5 -30 -8 -16 0 -6 Z" fill="#fff3c0" opacity="0.9" />
+        </g>
 
-      {/* Mecha */}
-      <line x1="0" y1="46" x2="0" y2="60" stroke="#3a2a18" strokeWidth="3" />
+        {/* reflejo en el cristal */}
+        <rect x="-28" y="-74" width="11" height="132" rx="5" fill="#ffffff" opacity={0.1 + 0.12 * e} />
 
-      {/* Llama: anclada en la base (0,0 local) → crece hacia arriba desde la mecha */}
-      <g transform={`translate(0 48) scale(${flame})`}>
-        <path d="M0 0 C 16 -14 11 -36 0 -48 C -11 -36 -16 -14 0 0 Z" fill="url(#flameGrad)" />
-        <path d="M0 -6 C 8 -16 5 -30 0 -38 C -5 -30 -8 -16 0 -6 Z" fill="#fff3c0" opacity="0.9" />
+        {/* barrotes y armazón (metal cilíndrico) */}
+        <rect x="-44" y="-80" width="9" height="150" rx="3" fill="url(#metalH)" />
+        <rect x="35" y="-80" width="9" height="150" rx="3" fill="url(#metalH)" />
+        <rect x="-2" y="-80" width="4" height="150" fill="#3a2f22" opacity="0.55" />
+        <rect x="-37" y="-80" width="74" height="9" rx="3" fill="url(#metalH)" />
+        <rect x="-37" y="61" width="74" height="9" rx="3" fill="url(#metalH)" />
+
+        {/* base */}
+        <path d="M-48 70 L48 70 L36 92 L-36 92 Z" fill="url(#metalV)" />
+        <ellipse cx="0" cy="70" rx="48" ry="6" fill="#3a2f22" />
       </g>
-
-      {/* Barras del cristal */}
-      <line x1="0" y1="-66" x2="0" y2="68" stroke="#6b5640" strokeWidth="3" opacity="0.45" />
-
-      {/* Base */}
-      <path d="M-44 76 L44 76 L34 96 L-34 96 Z" fill="#5b4a36" />
     </svg>
   );
 }

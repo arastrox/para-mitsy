@@ -101,3 +101,16 @@ body {
     animation: none;
   }
 }
+
+/* Balanceo suave (objeto que cuelga, p. ej. el farol) */
+.sway {
+  transform-origin: top center;
+  animation: sway 5.5s ease-in-out infinite alternate;
+}
+@keyframes sway {
+  from { transform: rotate(-2.2deg); }
+  to { transform: rotate(2.2deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sway { animation: none; }
+}

@@ -96,6 +96,8 @@ export default function ForestScene() {
       ph: Math.random() * 6,
     }));
     let count = 0;
+    let orbiters: { ang: number; r: number; sp: number; ph: number; wob: number; size: number }[] = [];
+    let t = 0;
 
     function loop() {
       if (!ctx) return;
@@ -135,6 +137,14 @@ export default function ForestScene() {
           if (count >= TOTAL && !revealedRef.current) {
             revealedRef.current = true;
             setRevealed(true);
+            orbiters = Array.from({ length: 20 }, (_, k) => ({
+              ang: (k / 20) * Math.PI * 2,
+              r: 64 + Math.random() * 78,
+              sp: (0.004 + Math.random() * 0.006) * (Math.random() < 0.5 ? 1 : -1),
+              ph: Math.random() * 6.28,
+              wob: 6 + Math.random() * 12,
+              size: 2.4 + Math.random() * 2.2,
+            }));
           }
           continue;
         }
@@ -151,10 +161,25 @@ export default function ForestScene() {
         ctx.restore();
       }
 
-      if (flies.length === 0 && revealedRef.current) {
-        ctx.clearRect(0, 0, w, h);
-        return;
+      // luciérnagas orbitando el farol tras encenderlo
+      t += 0.016;
+      for (const o of orbiters) {
+        o.ang += o.sp;
+        const rad = o.r + Math.sin(t * 1.3 + o.ph) * o.wob;
+        const ox = cx + Math.cos(o.ang) * rad;
+        const oy = cy + Math.sin(o.ang) * rad * 0.72;
+        const glow = 0.55 + 0.45 * Math.sin(t * 3 + o.ph);
+        ctx.save();
+        ctx.globalAlpha = 0.5 + 0.4 * glow;
+        ctx.shadowBlur = 14 * glow;
+        ctx.shadowColor = '#ffe8a0';
+        ctx.fillStyle = '#fff4c0';
+        ctx.beginPath();
+        ctx.arc(ox, oy, o.size + glow, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
       }
+
       raf = requestAnimationFrame(loop);
     }
     raf = requestAnimationFrame(loop);
@@ -187,7 +212,7 @@ export default function ForestScene() {
 
       {/* farol (se enciende con el progreso) */}
       <div className="absolute inset-0 z-[6] flex items-center justify-center" style={{ transform: 'translate3d(calc(var(--mx,0) * -10px), calc(var(--my,0) * -8px), 0)' }}>
-        <div className="relative h-[min(78vw,400px)] w-[min(78vw,400px)]">
+        <div className="sway relative h-[min(78vw,400px)] w-[min(78vw,400px)]">
           <Lantern p={p} />
         </div>
       </div>
